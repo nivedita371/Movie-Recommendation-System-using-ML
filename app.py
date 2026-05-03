@@ -125,26 +125,39 @@ recommend_btn = st.button("✨ Recommend Movies")
 # -------------------- TRIGGER LOGIC --------------------
 if selected_movie and (recommend_btn or st.session_state.get("last_movie") != selected_movie):
     st.session_state["last_movie"] = selected_movie
+    selected_data = movies[movies["title"] == selected_movie].iloc[0]
 
-    titles, ratings = recommend(selected_movie)
+    st.markdown(
+        f"""
+        <div style='background:#15181f;padding:18px;border-radius:14px;margin-bottom:20px;'>
+            <h2 style='margin:0;color:#f5c518;'>Selected Movie</h2>
+            <p style='margin:4px 0;color:#f5f5f5;'>Title: <strong>{selected_data.title}</strong></p>
+            <p style='margin:4px 0;color:#f5f5f5;'>Status: <strong>{selected_data.status}</strong></p>
+            <p style='margin:4px 0;color:#f5f5f5;'>Rating: <strong>{selected_data.vote_average:.1f}</strong></p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    titles, ratings = recommend(selected_movie, min_rating)
 
     if titles:
         st.success("✅ Movies you may like:")
-        cols = st.columns(5)
+        cols = st.columns(min(5, len(titles)))
 
-        for i in range(5):
+        for i in range(len(titles)):
             with cols[i]:
                 st.markdown(
                     f"""
                     <div class="movie-card">
                         <div class="movie-title">🎬 {titles[i]}</div>
-                        <div style="color:#f5c518;">Rating: {ratings[i]}</div>
+                        <div style="color:#f5c518;">Rating: {ratings[i]:.1f}</div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
     else:
-        st.error("❌ Movie not found.")
+        st.warning("⚠️ No recommendations found above the selected rating threshold.")
 
 # -------------------- FOOTER --------------------
 st.markdown("---")
