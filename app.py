@@ -52,7 +52,7 @@ def load_data():
 movies, similarity = load_data()
 
 # -------------------- RECOMMEND FUNCTION --------------------
-def recommend(movie_title):
+def recommend(movie_title, min_rating=0):
     if movie_title not in movies["title"].values:
         return [], []
 
@@ -61,13 +61,17 @@ def recommend(movie_title):
         list(enumerate(similarity[idx])),
         key=lambda x: x[1],
         reverse=True
-    )[1:6]
+    )[1:]
 
     titles, ratings = [], []
     for i, _ in scores:
-        titles.append(movies.iloc[i].title)
         r = movies.iloc[i].vote_average
-        ratings.append(5 if r >= 5 else 4 if r >= 4 else 2.5)
+        if r < min_rating:
+            continue
+        titles.append(movies.iloc[i].title)
+        ratings.append(r)
+        if len(titles) == 5:
+            break
 
     return titles, ratings
 
@@ -84,6 +88,15 @@ st.sidebar.info(
 
     Built for **Placement Showcase**
     """
+)
+
+min_rating = st.sidebar.slider(
+    "Minimum recommended movie rating",
+    min_value=0.0,
+    max_value=10.0,
+    value=4.0,
+    step=0.5,
+    help="Only include recommended movies with IMDb-style ratings above this threshold."
 )
 
 # -------------------- MAIN UI --------------------
